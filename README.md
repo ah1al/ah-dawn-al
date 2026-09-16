@@ -1,5 +1,20 @@
 # ah-dawn-al
 
+## Download and run on Windows
+
+Install Git and Docker Desktop, then start Docker Desktop. Open PowerShell in the folder where you want to keep the project and run:
+
+```powershell
+git clone https://github.com/ah1al/ah-dawn-al.git
+cd ah-dawn-al
+.\run-docker.ps1
+```
+
+Once the container starts, open [http://localhost:5000](http://localhost:5000) in your browser.
+
+For an existing copy, open PowerShell in the `ah-dawn-al` folder and run `.\run-docker.ps1`.
+
+
 Open-source downloader and preview tool for videos and images from selected social platforms.
 
 ## Features
