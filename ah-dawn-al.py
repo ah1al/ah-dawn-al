@@ -36,6 +36,9 @@ ALLOWED_DOMAINS = (
     "story.snapchat.com",
 )
 
+if not os.path.exists(DOWNLOAD_PATH):
+    os.makedirs(DOWNLOAD_PATH)
+
 def validate_public_url(url):
     parsed = urlparse(url)
     if parsed.scheme not in ("http", "https") or not parsed.netloc:
@@ -148,11 +151,11 @@ HTML_TEMPLATE = """
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #1a1a1a; color: white; min-height: 100vh; margin: 0; padding: 18px; display: flex; justify-content: center; align-items: center; }
         .container { background-color: #2d2d2d; padding: 22px; border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; width: min(620px, 100%); }
         h1 { color: #3498db; margin: 0 0 18px; font-size: 24px; }
-        .input-row { display: grid; grid-template-columns: auto 1fr; gap: 8px; align-items: center; direction: ltr; margin-bottom: 8px; }
+        .input-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; direction: ltr; margin-bottom: 8px; }
         input { min-width: 0; width: 100%; padding: 12px; border-radius: 8px; border: none; font-size: 14px; text-align: right; direction: ltr; }
         button { padding: 12px 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.3s; white-space: nowrap; }
-        .btn-paste { background-color: #555; color: white; }
-        .btn-paste:hover { background-color: #666; }
+        .btn-clear { background-color: #e74c3c; color: white; }
+        .btn-clear:hover { background-color: #c0392b; }
         .btn-import { background-color: #3498db; color: white; width: 100%; margin-top: 8px; }
         .btn-import:hover { background-color: #2980b9; }
         .btn-download { background-color: #2ecc71; color: white; width: 100%; margin-top: 14px; display: none; }
@@ -164,13 +167,6 @@ HTML_TEMPLATE = """
         .preview iframe { height: 620px; }
         .preview-title { text-align: right; padding: 10px 12px; color: #ddd; font-size: 14px; background: #242424; overflow-wrap: anywhere; }
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 30px; height: 30px; animation: spin 2s linear infinite; display: none; margin: 14px auto 0; }
-        body.cookie-notice-visible { padding-bottom: 110px; }
-        .cookie-notice { position: fixed; z-index: 10; bottom: 0; left: 0; right: 0; display: none; align-items: center; justify-content: space-between; gap: 16px; padding: 16px max(18px, calc((100vw - 900px) / 2)); background: #242424; border-top: 1px solid #555; box-shadow: 0 -4px 16px rgba(0,0,0,0.3); text-align: left; direction: ltr; }
-        .cookie-notice p { margin: 0; font-size: 14px; line-height: 1.5; color: #eee; }
-        .cookie-actions { display: flex; gap: 8px; flex: 0 0 auto; }
-        .cookie-actions button { padding: 10px 16px; border-radius: 6px; }
-        .cookie-accept { background: #3498db; color: white; }
-        .cookie-reject { background: #555; color: white; }
         @media (max-width: 520px) {
             .container { padding: 16px; }
             h1 { font-size: 20px; }
@@ -183,8 +179,8 @@ HTML_TEMPLATE = """
     <div class="container">
         <h1>🚀 Universal Pro Downloader</h1>
         <div class="input-row">
-            <button class="btn-paste" onclick="pasteUrl()">لصق</button>
             <input type="text" id="url" placeholder="رابط فيديو...">
+            <button class="btn-clear" onclick="clearUrl()">تنظيف</button>
         </div>
         <button class="btn-import" onclick="importMedia()">احضار الرابط</button>
         <div id="loader" class="loader"></div>
@@ -196,60 +192,15 @@ HTML_TEMPLATE = """
         </div>
     </div>
 
-    <div id="cookieNotice" class="cookie-notice" role="region" aria-label="Cookie notice">
-        <p>We use a cookie to remember your choice on this site. This does not provide access to YouTube cookies.</p>
-        <div class="cookie-actions">
-            <button class="cookie-reject" type="button" onclick="setCookieChoice('rejected')">Reject</button>
-            <button class="cookie-accept" type="button" onclick="setCookieChoice('accepted')">Accept</button>
-        </div>
-    </div>
-
     <script>
         let importedUrl = "";
 
-        function setCookieChoice(choice) {
-            const secure = location.protocol === 'https:' ? '; Secure' : '';
-            if (choice === 'accepted') {
-                document.cookie = 'site_cookie_choice=accepted; Path=/; Max-Age=31536000; SameSite=Lax' + secure;
-            } else {
-                document.cookie = 'site_cookie_choice=; Path=/; Max-Age=0; SameSite=Lax' + secure;
-            }
-            try { localStorage.setItem('site_cookie_choice', choice); } catch (_) {}
-            document.getElementById('cookieNotice').style.display = 'none';
-            document.body.classList.remove('cookie-notice-visible');
-        }
-
-        function initCookieNotice() {
-            let choice = '';
-            try { choice = localStorage.getItem('site_cookie_choice') || ''; } catch (_) {}
-            if (!choice && document.cookie.split('; ').includes('site_cookie_choice=accepted')) {
-                choice = 'accepted';
-            }
-            if (choice !== 'accepted' && choice !== 'rejected') {
-                document.getElementById('cookieNotice').style.display = 'flex';
-                document.body.classList.add('cookie-notice-visible');
-            }
-        }
-
-        initCookieNotice();
-
-        async function pasteUrl() {
-            const status = document.getElementById('status');
-            try {
-                const text = await navigator.clipboard.readText();
-                const input = document.getElementById('url');
-                input.value = "";
-                input.value = text.trim();
-                importedUrl = "";
-                document.getElementById('preview').style.display = "none";
-                document.getElementById('previewMedia').innerHTML = "";
-                document.getElementById('downloadBtn').style.display = "none";
-                status.innerText = "تم لصق الرابط";
-                status.style.color = "#2ecc71";
-            } catch (e) {
-                status.innerText = "تعذر اللصق التلقائي، يرجى اللصق يدويًا (يتطلب HTTPS)";
-                status.style.color = "#f1c40f";
-            }
+        function clearUrl() {
+            document.getElementById('url').value = "";
+            document.getElementById('preview').style.display = "none";
+            document.getElementById('previewMedia').innerHTML = "";
+            document.getElementById('downloadBtn').style.display = "none";
+            document.getElementById('status').innerText = "تم التنظيف";
         }
 
         function setLoading(isLoading, message) {
