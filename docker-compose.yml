@@ -1,0 +1,12 @@
+name: ah-dawn-al
+
+services:
+  ah-dawn-al:
+    build: .
+    image: ah-dawn-al:latest
+    container_name: ah-dawn-al
+    ports:
+      - "5000:5000"
+    volumes:
+      - "./downloads:/app/downloads"
+    restart: unless-stopped
