@@ -199,7 +199,7 @@ HTML_TEMPLATE = """
 </head>
 <body>
     <div class="container">
-        <div class="version-tag">v1.0.2</div>
+        <div class="version-tag">v1.0.3</div>
         <h1>🚀 Universal Pro Downloader</h1>
         <div class="input-row">
             <input type="text" id="url" placeholder="رابط فيديو...">
@@ -252,8 +252,8 @@ HTML_TEMPLATE = """
             const downloadBtn = document.getElementById('downloadBtn');
             if (!url) { setStatus("❌ يرجى إدخال الرابط أولاً!", "red"); return; }
 
-            // إذا كان الرابط يوتيوب، قم بالتحميل مباشرة
-            if (url.includes('youtube.com') || url.includes('youtu.be')) {
+            // إذا كان الرابط يوتيوب أو تيك توك، قم بالتحميل مباشرة
+            if (url.includes('youtube.com') || url.includes('youtu.be') || url.includes('tiktok.com')) {
                 importedUrl = url;
                 downloadMedia();
                 return;
