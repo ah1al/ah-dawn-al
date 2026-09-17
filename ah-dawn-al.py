@@ -169,6 +169,7 @@ HTML_TEMPLATE = """
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #1a1a1a; color: white; min-height: 100vh; margin: 0; padding: 18px; display: flex; justify-content: center; align-items: center; }
         .container { background-color: #2d2d2d; padding: 22px; border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; width: min(620px, 100%); }
         h1 { color: #3498db; margin: 0 0 18px; font-size: 24px; }
+        .version-tag { font-size: 12px; color: #888; text-align: right; margin-bottom: 5px; font-weight: normal; }
         .input-row { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center; direction: ltr; margin-bottom: 8px; }
         input { min-width: 0; width: 100%; padding: 12px; border-radius: 8px; border: none; font-size: 14px; text-align: right; direction: ltr; }
         button { padding: 12px 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.3s; white-space: nowrap; }
@@ -198,6 +199,7 @@ HTML_TEMPLATE = """
 </head>
 <body>
     <div class="container">
+        <div class="version-tag">v1.0.1</div>
         <h1>🚀 Universal Pro Downloader</h1>
         <div class="input-row">
             <input type="text" id="url" placeholder="رابط فيديو...">
