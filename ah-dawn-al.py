@@ -199,7 +199,7 @@ HTML_TEMPLATE = """
 </head>
 <body>
     <div class="container">
-        <div class="version-tag">v1.0.1</div>
+        <div class="version-tag">v1.0.2</div>
         <h1>🚀 Universal Pro Downloader</h1>
         <div class="input-row">
             <input type="text" id="url" placeholder="رابط فيديو...">
