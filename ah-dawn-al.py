@@ -15,8 +15,8 @@ from urllib.parse import quote, unquote, urlparse
 app = Flask(__name__)
 
 # ================= الإعدادات الثابتة =================
-COOKIES_PATH = r"/app/cookies.txt" 
-DOWNLOAD_PATH = r"/app/downloads"   
+COOKIES_PATH = r"/app/cookies.txt"
+DOWNLOAD_PATH = r"/app/downloads"
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 ALLOWED_DOMAINS = (
     "youtube.com",
@@ -147,14 +147,14 @@ HTML_TEMPLATE = """
         * { box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #1a1a1a; color: white; min-height: 100vh; margin: 0; padding: 18px; display: flex; justify-content: center; align-items: center; }
         .container { background-color: #2d2d2d; padding: 22px; border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; width: min(620px, 100%); }
-        h1 { color: #3498db; margin: 0 0 18px; font-size: 26px; }
-        .input-row { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; direction: ltr; }
-        input { min-width: 0; width: 100%; padding: 13px; border-radius: 8px; border: none; font-size: 16px; text-align: right; direction: ltr; }
-        button { padding: 13px 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 15px; transition: 0.3s; white-space: nowrap; }
-        .btn-import { background-color: #3498db; color: white; }
-        .btn-import:hover { background-color: #2980b9; }
+        h1 { color: #3498db; margin: 0 0 18px; font-size: 24px; }
+        .input-row { display: grid; grid-template-columns: auto 1fr; gap: 8px; align-items: center; direction: ltr; margin-bottom: 8px; }
+        input { min-width: 0; width: 100%; padding: 12px; border-radius: 8px; border: none; font-size: 14px; text-align: right; direction: ltr; }
+        button { padding: 12px 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.3s; white-space: nowrap; }
         .btn-paste { background-color: #555; color: white; }
         .btn-paste:hover { background-color: #666; }
+        .btn-import { background-color: #3498db; color: white; width: 100%; margin-top: 8px; }
+        .btn-import:hover { background-color: #2980b9; }
         .btn-download { background-color: #2ecc71; color: white; width: 100%; margin-top: 14px; display: none; }
         .btn-download:hover { background-color: #27ae60; }
         #status { margin-top: 16px; font-size: 14px; color: #bbb; min-height: 22px; }
@@ -173,12 +173,8 @@ HTML_TEMPLATE = """
         .cookie-reject { background: #555; color: white; }
         @media (max-width: 520px) {
             .container { padding: 16px; }
-            h1 { font-size: 22px; }
-            .input-row { grid-template-columns: 1fr; direction: rtl; }
-            button { width: 100%; }
-            body.cookie-notice-visible { padding-bottom: 180px; }
-            .cookie-notice { align-items: stretch; flex-direction: column; gap: 12px; }
-            .cookie-actions button { flex: 1; }
+            h1 { font-size: 20px; }
+            input::placeholder { font-size: 12px; }
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
@@ -187,10 +183,10 @@ HTML_TEMPLATE = """
     <div class="container">
         <h1>🚀 Universal Pro Downloader</h1>
         <div class="input-row">
-            <button class="btn-import" onclick="importMedia()">استيراد</button>
-            <input type="text" id="url" placeholder="رابط YouTube أو TikTok أو Twitter/X أو Snapchat...">
             <button class="btn-paste" onclick="pasteUrl()">لصق</button>
+            <input type="text" id="url" placeholder="رابط فيديو...">
         </div>
+        <button class="btn-import" onclick="importMedia()">احضار الرابط</button>
         <div id="loader" class="loader"></div>
         <div id="status">جاهز للاستخدام</div>
         <button id="downloadBtn" class="btn-download" onclick="downloadMedia()">تحميل</button>
@@ -251,7 +247,7 @@ HTML_TEMPLATE = """
                 status.innerText = "تم لصق الرابط";
                 status.style.color = "#2ecc71";
             } catch (e) {
-                status.innerText = "الصق الرابط يدويًا إذا لم يسمح المتصفح باللصق";
+                status.innerText = "تعذر اللصق التلقائي، يرجى اللصق يدويًا (يتطلب HTTPS)";
                 status.style.color = "#f1c40f";
             }
         }
@@ -371,6 +367,7 @@ def get_yt_options(download=True):
         'socket_timeout': 20,
         'quiet': True,
         'no_warnings': True,
+        'geo_bypass': True,
     }
     if os.path.exists(COOKIES_PATH) and os.path.getsize(COOKIES_PATH) > 0:
         options['cookiefile'] = COOKIES_PATH
@@ -429,7 +426,7 @@ def execute():
             finally:
                 if temp_dir is not None:
                     shutil.rmtree(temp_dir, ignore_errors=True)
-        
+
         elif action == 'preview':
             with yt_dlp.YoutubeDL(get_yt_options(download=False)) as ydl:
                 info = ydl.extract_info(url, download=False)
@@ -525,4 +522,3 @@ def stream_media():
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)
-
