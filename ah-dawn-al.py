@@ -17,7 +17,7 @@ app = Flask(__name__)
 # ================= الإعدادات الثابتة =================
 COOKIES_PATH = r"/app/cookies.txt"
 DOWNLOAD_PATH = r"/app/downloads"
-USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
 ALLOWED_DOMAINS = (
     "youtube.com",
     "www.youtube.com",
@@ -311,20 +311,30 @@ HTML_TEMPLATE = """
 
 def get_yt_options(download=True):
     options = {
-        'user_agent': USER_AGENT,
-        'retries': 3,
-        'extractor_retries': 3,
-        'fragment_retries': 3,
-        'socket_timeout': 20,
+        'user_agent': "Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Mobile Safari/537.36",
+        'retries': 10,
+        'extractor_retries': 10,
+        'fragment_retries': 10,
+        'socket_timeout': 30,
         'quiet': True,
         'no_warnings': True,
         'geo_bypass': True,
+        'nocheckcertificate': True,
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['android', 'web'],
+            }
+        },
+        'add_header': [
+            'Referer:https://www.youtube.com/',
+            'Accept-Language:en-US,en;q=0.9'
+        ]
     }
     if os.path.exists(COOKIES_PATH) and os.path.getsize(COOKIES_PATH) > 0:
         options['cookiefile'] = COOKIES_PATH
     if download:
         options.update({
-            'format': 'bestvideo+bestaudio/best',
+            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
             'merge_output_format': 'mp4',
             'outtmpl': os.path.join(DOWNLOAD_PATH, '%(extractor_key)s_%(id)s.%(ext)s'),
             'postprocessors': [{
