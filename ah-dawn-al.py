@@ -96,6 +96,24 @@ def media_type_from_info(info):
         return "image"
     return "video"
 
+def youtube_embed_url(url):
+    parsed = urlparse(url)
+    video_id = None
+    if parsed.hostname in ("www.youtube.com", "youtube.com"):
+        if parsed.path == "/watch":
+            from urllib.parse import parse_qs
+            video_id = parse_qs(parsed.query).get('v', [None])[0]
+        elif parsed.path.startswith("/embed/"):
+            video_id = parsed.path.split("/")[2]
+        elif parsed.path.startswith("/v/"):
+            video_id = parsed.path.split("/")[2]
+    elif parsed.hostname == "youtu.be":
+        video_id = parsed.path.lstrip("/")
+
+    if not video_id:
+        return None
+    return f'https://www.youtube.com/embed/{video_id}'
+
 def tiktok_embed_url(info, url):
     video_id = info.get('id')
     if not video_id:
@@ -410,6 +428,17 @@ def execute():
                 embed_url = tiktok_embed_url(info, url)
                 if not embed_url:
                     return jsonify({'success': False, 'message': 'لم يتم العثور على رابط عرض TikTok'})
+                return jsonify({
+                    'success': True,
+                    'message': '✨ تم استيراد الوسائط',
+                    'url': embed_url,
+                    'title': info.get('title') or 'وسائط مستوردة',
+                    'media_type': 'embed',
+                })
+            if platform_name(url) == 'youtube':
+                embed_url = youtube_embed_url(url)
+                if not embed_url:
+                    return jsonify({'success': False, 'message': 'لم يتم العثور على رابط عرض YouTube'})
                 return jsonify({
                     'success': True,
                     'message': '✨ تم استيراد الوسائط',
