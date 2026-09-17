@@ -206,7 +206,7 @@ HTML_TEMPLATE = """
             <button class="btn-paste" onclick="pasteUrl()">لصق</button>
             <button class="btn-clear" onclick="clearUrl()">تنظيف</button>
         </div>
-        <button class="btn-import" onclick="importMedia()">احضار الرابط</button>
+        <button class="btn-import" onclick="importMedia()">بحث</button>
         <div id="loader" class="loader"></div>
         <div id="status">جاهز للاستخدام</div>
         <button id="downloadBtn" class="btn-download" onclick="downloadMedia()">تحميل</button>
@@ -251,6 +251,13 @@ HTML_TEMPLATE = """
             const previewTitle = document.getElementById('previewTitle');
             const downloadBtn = document.getElementById('downloadBtn');
             if (!url) { setStatus("❌ يرجى إدخال الرابط أولاً!", "red"); return; }
+
+            // إذا كان الرابط يوتيوب، قم بالتحميل مباشرة
+            if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                importedUrl = url;
+                downloadMedia();
+                return;
+            }
 
             importedUrl = "";
             preview.style.display = "none";
