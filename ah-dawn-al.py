@@ -1,9 +1,11 @@
-from flask import Flask, Response, render_template_string, request, jsonify
+from flask import Flask, Response, after_this_request, render_template_string, request, jsonify, send_file
 import yt_dlp
 import os
 import ipaddress
 import socket
 import urllib.request
+import tempfile
+import shutil
 from urllib.parse import quote, unquote, urlparse
 
 # ah-dawn-al
@@ -286,8 +288,22 @@ HTML_TEMPLATE = """
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({url: importedUrl, action: 'download'})
                 });
-                const result = await response.json();
-                setStatus(result.success ? result.message : "❌ " + result.message, result.success ? "#2ecc71" : "red");
+                const contentType = response.headers.get('content-type') || '';
+                if (!response.ok || contentType.includes('application/json')) {
+                    const result = await response.json();
+                    setStatus("❌ " + (result.message || "تعذر تنزيل الملف"), "red");
+                    return;
+                }
+                const blob = await response.blob();
+                const objectUrl = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = objectUrl;
+                link.download = '';
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                URL.revokeObjectURL(objectUrl);
+                setStatus("✅ تم إرسال الملف إلى جهازك", "#2ecc71");
             } catch (e) {
                 setStatus("❌ حدث خطأ في الاتصال بالسيرفر", "red");
             } finally {
@@ -349,12 +365,22 @@ def execute():
                 info = ydl.extract_info(url, download=False)
             if not is_image_or_video_info(info):
                 return jsonify({'success': False, 'message': 'الرابط لا يحتوي على صورة أو فيديو قابل للتحميل'})
+            temp_dir = tempfile.mkdtemp(prefix='ah-dawn-al-')
             download_options = get_yt_options(download=True)
-            download_options['outtmpl'] = os.path.join(DOWNLOAD_PATH, f'{platform_name(url)}_%(id)s.%(ext)s')
+            download_options['outtmpl'] = os.path.join(temp_dir, f'{platform_name(url)}_%(id)s.%(ext)s')
             with yt_dlp.YoutubeDL(download_options) as ydl:
                 ydl.download([url])
-                filename = os.path.basename(ydl.prepare_filename(info))
-            return jsonify({'success': True, 'message': f'✅ تم التحميل: {filename}'})
+            files = [os.path.join(temp_dir, name) for name in os.listdir(temp_dir)]
+            if not files:
+                shutil.rmtree(temp_dir, ignore_errors=True)
+                return jsonify({'success': False, 'message': 'لم يتم إنشاء ملف قابل للتنزيل'})
+            output_path = max(files, key=os.path.getmtime)
+            filename = os.path.basename(output_path)
+            @after_this_request
+            def remove_temp_file(response):
+                shutil.rmtree(temp_dir, ignore_errors=True)
+                return response
+            return send_file(output_path, as_attachment=True, download_name=filename)
         
         elif action == 'preview':
             with yt_dlp.YoutubeDL(get_yt_options(download=False)) as ydl:
