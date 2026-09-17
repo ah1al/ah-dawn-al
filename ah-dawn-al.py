@@ -151,11 +151,13 @@ HTML_TEMPLATE = """
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #1a1a1a; color: white; min-height: 100vh; margin: 0; padding: 18px; display: flex; justify-content: center; align-items: center; }
         .container { background-color: #2d2d2d; padding: 22px; border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; width: min(620px, 100%); }
         h1 { color: #3498db; margin: 0 0 18px; font-size: 24px; }
-        .input-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; direction: ltr; margin-bottom: 8px; }
+        .input-row { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center; direction: ltr; margin-bottom: 8px; }
         input { min-width: 0; width: 100%; padding: 12px; border-radius: 8px; border: none; font-size: 14px; text-align: right; direction: ltr; }
         button { padding: 12px 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.3s; white-space: nowrap; }
         .btn-clear { background-color: #e74c3c; color: white; }
         .btn-clear:hover { background-color: #c0392b; }
+        .btn-paste { background-color: #f39c12; color: white; }
+        .btn-paste:hover { background-color: #e67e22; }
         .btn-import { background-color: #3498db; color: white; width: 100%; margin-top: 8px; }
         .btn-import:hover { background-color: #2980b9; }
         .btn-download { background-color: #2ecc71; color: white; width: 100%; margin-top: 14px; display: none; }
@@ -171,6 +173,7 @@ HTML_TEMPLATE = """
             .container { padding: 16px; }
             h1 { font-size: 20px; }
             input::placeholder { font-size: 12px; }
+            .input-row { grid-template-columns: 1fr auto auto; }
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
@@ -180,6 +183,7 @@ HTML_TEMPLATE = """
         <h1>🚀 Universal Pro Downloader</h1>
         <div class="input-row">
             <input type="text" id="url" placeholder="رابط فيديو...">
+            <button class="btn-paste" onclick="pasteUrl()">لصق</button>
             <button class="btn-clear" onclick="clearUrl()">تنظيف</button>
         </div>
         <button class="btn-import" onclick="importMedia()">احضار الرابط</button>
@@ -194,6 +198,15 @@ HTML_TEMPLATE = """
 
     <script>
         let importedUrl = "";
+
+        async function pasteUrl() {
+            try {
+                const text = await navigator.clipboard.readText();
+                document.getElementById('url').value = text;
+            } catch (err) {
+                alert("تعذر الوصول إلى الحافظة");
+            }
+        }
 
         function clearUrl() {
             document.getElementById('url').value = "";
